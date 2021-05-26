@@ -169,6 +169,27 @@ namespace DolphinBisectTool
                 {
                     throw new Exception("Error extracting. Probably a missing build. Skipping this build.", e);
                 }
+
+                try
+                {
+                    // Prevent builds from affecting the real User directory
+                    File.Create(@"dolphin\Dolphin-x64\portable.txt");
+
+                    // Disable Dolphin analytics and prevent permission request popup
+                    String config_directory = @"dolphin\Dolphin-x64\User\Config\";
+                    Directory.CreateDirectory(config_directory);
+                    using (FileStream config = File.Create(config_directory + "Dolphin.ini"))
+                    {
+                        using (StreamWriter stream = new StreamWriter(config))
+                        {
+                            stream.WriteLine("[Analytics]\nEnabled = False\nPermissionAsked = True\n");
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Creating portable.txt and Dolphin.ini is nice but not essential
+                }
             }
         }
     }

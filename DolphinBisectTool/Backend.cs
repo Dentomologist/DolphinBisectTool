@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using SevenZip;
 
@@ -39,7 +40,6 @@ namespace DolphinBisectTool
 
         public void Bisect(string boot_title = "")
         {
-            string base_url = "https://dl.dolphin-emu.org/builds/dolphin-master-";
             int test_index = 0;
             int test_direction = 0;
             List<String> skipped_builds = new List<string>();
@@ -56,7 +56,7 @@ namespace DolphinBisectTool
                 {
                     try
                     {
-                        Download(base_url + m_build_list[test_index] + "-x64.7z", m_build_list[test_index]);
+                        Download(m_build_list[test_index]);
                         log.Write("Testing build " + m_build_list[test_index]);
                         break;
                     }
@@ -111,7 +111,7 @@ namespace DolphinBisectTool
             }
         }
 
-        public void Download(string url, string version)
+        public void Download(string version)
         {
             // Windows will throw an error if you have the folder you're trying to delete open in
             // explorer. It will remove the contents but error out on the folder removal. That's
@@ -127,11 +127,23 @@ namespace DolphinBisectTool
 
             using (WebClient client = new WebClient())
             {
+                Uri redirect_uri = new Uri("https://dolp.in/v" + version);
+                String information_html = client.DownloadString(redirect_uri);
+                String regex = "https://dl\\.dolphin-emu\\.org/builds/"
+                + "[0-9a-f]{2}/[0-9a-f]{2}/dolphin-master-" + version + "-x64\\.7z";
+                Match m = Regex.Match(information_html, regex);
+                if (!m.Success)
+                {
+                    throw new Exception("Windows build for version " + version + " not found");
+                }
+                String build_url = m.Value;
+
                 client.DownloadProgressChanged += (s, e) =>
                 {
                     UpdateProgress(e.ProgressPercentage, "Downloading build", ProgressBarStyle.Continuous);
                 };
-                client.DownloadFileAsync(new Uri(url), "dolphin.7z");
+
+                client.DownloadFileAsync(new Uri(build_url), "dolphin.7z");
 
                 while (client.IsBusy)
                 {

@@ -7,6 +7,7 @@ namespace DolphinBisectTool
     public partial class MainWindow : Form
     {
 
+        int final_build_index_offset;
         List<string> m_build_list;
         static string s_major_version = "5.0";
 
@@ -35,7 +36,7 @@ namespace DolphinBisectTool
             }
             else
             {
-                result = MessageBox.Show("Build " + m_build_list[build-1] + " may be the cause of your issue. " +
+                result = MessageBox.Show("Build " + m_build_list[build-final_build_index_offset] + " may be the cause of your issue. " +
                                          "Do you want to open the URL for that build?", "Notice",
                                          MessageBoxButtons.YesNo);
                 start_button.Enabled = true;
@@ -43,10 +44,12 @@ namespace DolphinBisectTool
 
             if (result == DialogResult.Yes)
             {
+                final_build_index_offset = 0;
                 return UserInput.Yes;
             }
             else if (result == DialogResult.No)
             {
+                final_build_index_offset = 1;
                 return UserInput.No;
             }
             else

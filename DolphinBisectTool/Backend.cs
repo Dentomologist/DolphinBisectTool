@@ -42,6 +42,7 @@ namespace DolphinBisectTool
         {
             int test_index = 0;
             int test_direction = 0;
+            int final_build_index_offset = 0;
             List<String> skipped_builds = new List<string>();
             RunBuild run_build = new RunBuild();
             Logger log = new Logger();
@@ -85,18 +86,21 @@ namespace DolphinBisectTool
                     log.Write("Build " + m_build_list[test_index] + " marked as a BAD build");
                     m_first_index = test_index;
                     test_direction = 1;
+                    final_build_index_offset = 0;
                 }
                 else if (return_val == UserInput.No)
                 {
                     log.Write("Build " + m_build_list[test_index] + " marked as a GOOD build");
                     m_second_index = test_index;
                     test_direction = 0;
+                    final_build_index_offset = 1;
                 }
                 else
                     return;
             }
 
-            log.Write("Bisect completed. " + m_build_list[test_index] + " may be the culprit.");
+            log.Write("Bisect completed. " + m_build_list[test_index - final_build_index_offset]
+                      + " may be the culprit.");
             if (!(skipped_builds.Count == 0))
             {
                 string sb = string.Join(", ", skipped_builds.ToArray());
@@ -107,7 +111,7 @@ namespace DolphinBisectTool
 
             if (open_url == UserInput.Yes)
             {
-                Process.Start("https://dolp.in/" + m_build_list[test_index-1]);
+                Process.Start("https://dolp.in/" + m_build_list[test_index-final_build_index_offset]);
             }
         }
 
